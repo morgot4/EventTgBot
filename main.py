@@ -1,27 +1,23 @@
-import asyncio, random
-from aiogram import Bot, Dispatcher
-from aiogram.filters import Command, CommandObject
-from aiogram.types import Message
+import asyncio
+from aiogram import Bot, Dispatcher, F
 from aiogram.client.bot import DefaultBotProperties
 from aiogram.enums import ParseMode
-from dotenv import load_dotenv
-import os
-load_dotenv()
+from handlers import bot_messages, user_commands, questionaire
+from callbacks import pagination
+from config_reader import config
 
-bot = Bot(token=os.getenv('TOKEN'), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-dp = Dispatcher()
-
-@dp.message(Command("start"))
-async def start(message: Message):
-    await message.answer(f"Hello, <b>{message.from_user.first_name}</b>.")
-
-@dp.message(Command(commands=["rn", "random_numbers"]))
-async def get_random_number(message: Message, command: CommandObject):
-    a, b = [int(n) for n in command.args.split("-")]
-    rnum = random.randint(a, b)
-    await message.reply(f"Random number: {rnum}")
 
 async def main():
+    bot = Bot(config.bot_token.get_secret_value(), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+    dp = Dispatcher()
+
+    dp.include_routers(
+        user_commands.router,
+        pagination.router,
+        questionaire.router,
+        bot_messages.router,
+        
+    )
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
 
