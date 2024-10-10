@@ -250,7 +250,7 @@ async def with_out_info(message: Message, state: FSMContext):
         await state.set_state(Form.final)
     else:
         await state.set_state(Form.owner_info)
-        await message.answer("👤Добавьте контактную информацию организатора", reply_markup=profile(["⬅️назад"]))
+        await message.answer("👤Добавьте контактную информацию организатора", reply_markup=profile(["📃Использовать шаблон", "➕Добавить шаблон", "🗑️удалить шаблон", "⬅️назад"]))
 
 @router.message(Form.link, F.text)
 async def form_link(message: Message, state: FSMContext):
@@ -265,7 +265,7 @@ async def form_link(message: Message, state: FSMContext):
             await state.set_state(Form.final)
         else:
             await state.set_state(Form.owner_info)
-            await message.answer("👤Добавьте контактную информацию организатора", reply_markup=profile(["📃Использовать шаблон", "➕Добавить шаблон","⬅️назад"]))
+            await message.answer("👤Добавьте контактную информацию организатора", reply_markup=profile(["📃Использовать шаблон", "➕Добавить шаблон", "🗑️удалить шаблон", "⬅️назад"]))
     else:
         await message.answer("🚫Ссылка некорректа! Введите еще раз")
 
@@ -275,27 +275,81 @@ async def incorrect_form_link(message: Message, state: FSMContext):
 
 
 @router.message(Form.owner_info, F.text.casefold().in_(["📃использовать шаблон"]))
-async def form_owner(message: Message, state: FSMContext):
-    await state.set_state(Form.use_template)
-    await message.answer("Выберите шаблон")
+async def use_template_owner(message: Message, state: FSMContext, request: Request):
+    await state.set_state(Form.owner_info)
+    templates = await request.get_templates(message.from_user.id)
+    buttons = []
+    buttons = [template["name"] for template in templates if template]
+    buttons.append("⬅️назад")
+    await message.answer("Выберите шаблон", reply_markup=profile(buttons))
 
-# @router.message(Form.owner_info, F.text)
-# async def form_owner(message: Message, state: FSMContext):
-#     data = await state.get_data()
-#     owner_info = message.text
-#     if len(owner_info) > 70:
-#         await message.answer("🚫Слишком много контактной информации. Попробуйте еще раз.")
-#     else:
-#         await state.update_data(owner_info=owner_info)
-#         if "owner_info" in data.keys() and data["owner_info"] == "CHANGE_AFTER_PUBLISH_OWNER":
-#             await print_event_data(state=state, message=message, after_publish=True)
-#             await state.set_state(Form.final)
-#         elif "owner_info" in data.keys() and data["owner_info"] != "":
-#             await print_event_data(state=state, message=message)
-#             await state.set_state(Form.final)
-#         else:
-#             await state.set_state(Form.photo)
-#             await message.answer("📷 Добавьте фотографию для вашего мероприятия", reply_markup=profile(["❌Без фотографии", "⬅️назад"]))
+@router.message(Form.owner_info, F.text.casefold().in_(["🗑️удалить шаблон"]))
+async def delete_template_owner(message: Message, state: FSMContext, request: Request):
+    await state.set_state(Form.delete_template)
+    templates = await request.get_templates(message.from_user.id)
+    buttons = []
+    buttons = [template["name"] for template in templates if template]
+    buttons.append("⬅️назад")
+    await message.answer("Выберите шаблон", reply_markup=profile(buttons))
+
+@router.message(Form.owner_info, F.text.casefold().in_(["➕добавить шаблон"]))
+async def add_template(message: Message, state: FSMContext):
+    await state.set_state(Form.add_template_name)
+    await message.answer("🏷️Напишите название для нового шаблона")
+
+@router.message(Form.owner_info, F.text)
+async def add_template(message: Message, state: FSMContext, request: Request):
+    data = await state.get_data()
+    owner_info = await request.get_template_value(message.text, message.from_user.id)
+    if owner_info == None:
+        owner_info = message.text
+    if len(owner_info) > 70:
+        await message.answer("🚫Слишком много контактной информации. Попробуйте еще раз.")
+    else:
+        await state.update_data(owner_info=owner_info)
+        if "owner_info" in data.keys() and data["owner_info"] == "CHANGE_AFTER_PUBLISH_OWNER":
+            await print_event_data(state=state, message=message, after_publish=True)
+            await state.set_state(Form.final)
+        elif "owner_info" in data.keys() and data["owner_info"] != "":
+            await print_event_data(state=state, message=message)
+            await state.set_state(Form.final)
+        else:
+            await state.set_state(Form.photo)
+            await message.answer("📷 Добавьте фотографию для вашего мероприятия", reply_markup=profile(["❌Без фотографии", "⬅️назад"]))
+
+@router.message(Form.add_template_name, F.text)
+async def add_template_name(message: Message, state: FSMContext, request: Request):
+    name = message.text
+    if len(name) > 15:
+        await message.answer("Слишком длинное название")
+    else:
+        await state.update_data(template_name=name)
+        await state.set_state(Form.add_template_value)
+        await message.answer("📃Теперь напишите сам шаблон")
+
+@router.message(Form.delete_template, F.text)
+async def delete_template_value(message: Message, state: FSMContext, request: Request):
+    name = message.text
+    delete = await request.delete_template(name, message.from_user.id)
+    if not delete:
+        await message.answer("Такого шаблона не существует")
+    else:
+        await message.answer("Шаблон успешно удалён!")
+        await message.answer("👤Добавьте контактную информацию организатора", reply_markup=profile(["📃Использовать шаблон", "➕Добавить шаблон", "🗑️удалить шаблон", "⬅️назад"]))
+        await state.set_state(Form.owner_info)
+
+@router.message(Form.add_template_value, F.text)
+async def add_template_value(message: Message, state: FSMContext, request: Request):
+    value = message.text
+    if len(value) > 30:
+        await message.answer("Слишком длинный шаблон")
+    else:
+        await state.update_data(template_value=value)
+        data = await state.get_data()
+        await request.add_template(data["template_name"],  data["template_value"],  message.from_user.id)
+        await state.set_state(Form.owner_info)
+        await message.answer("👤Добавьте контактную информацию организатора", reply_markup=profile(["📃Использовать шаблон", "➕Добавить шаблон", "🗑️Удалить шаблон", "⬅️назад"]))
+
 
 @router.message(Form.owner_info)
 async def incorrect_form_owner(message: Message, state: FSMContext):
@@ -397,9 +451,9 @@ async def all_changes(message, state, after_publish=False):
         await message.answer("Добавьте другую ссылку на запись", reply_markup=profile(["❌Без ссылки"]))
     elif msg == "изменить организатора":
         if after_publish:
-            await state.update_data(owner="CHANGE_AFTER_PUBLISH_OWNER")
+            await state.update_data(owner_info="CHANGE_AFTER_PUBLISH_OWNER")
         await state.set_state(Form.owner_info)
-        await message.answer("Добавьте новую информацию об организаторе")
+        await message.answer("Добавьте новую информацию об организаторе", reply_markup=profile(["📃Использовать шаблон", "➕Добавить шаблон", "🗑️Удалить шаблон"]))
     elif msg == "изменить фотографию":
         if after_publish:
             await state.update_data(photo_file_id="CHANGE_AFTER_PUBLISH_PHOTO_FILE_ID")

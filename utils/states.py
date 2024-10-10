@@ -8,7 +8,7 @@ class Form(StatesGroup):
     info = State()
     link = State()
     owner_info = State()
-    use_template = State()
+    delete_template = State()
     add_template_name = State()
     add_template_value = State()
     photo = State()

@@ -27,8 +27,8 @@ async def details(call: CallbackQuery, callback_data: EventDetails, request: Req
         if callback_data.listing:
             await call.message.edit_media(new_text, reply_markup=inline.get_exit_inline_keyboard(callback_data.id))
         else:
-            if status == "stopped":
-                await call.message.edit_media(new_text, reply_markup=inline.get_owner_exit_inline_keyboard(callback_data.id))
+            await call.message.edit_media(new_text, reply_markup=inline.get_owner_exit_inline_keyboard(callback_data.id))
+                
     else:
         if callback_data.listing:
             await call.message.edit_text(f"{text2}\n\n{more_info}", parse_mode=ParseMode.HTML, reply_markup=inline.get_exit_inline_keyboard(callback_data.id))
@@ -89,13 +89,13 @@ async def details(call: CallbackQuery, callback_data: EventDetails, request: Req
     await request.set_event_value("status", "stopped", callback_data.id)
     event = await request.get_events(callback_data.id)
     event = event[0]
-    basic_info = await event_txt.get_basic_info(event)
     photo = event["photo_file_id"]
 
     if photo != None:
-        await call.message.edit_media(photo, f"🗣️Название: {event["name"]}" + "\n\n❌МЕРОПРИЯТИЕ ЗАВЕРШЕНО", parse_mode=ParseMode.HTML, reply_markup=inline.get_owner_remove_inline_keyboard(callback_data.id))
+        file = InputMediaPhoto(media=photo, caption=f"🗣️Название: {event["name"]}\n\n❌МЕРОПРИЯТИЕ ЗАВЕРШЕНО")
+        await call.message.edit_media(file, reply_markup=inline.get_owner_remove_inline_keyboard(callback_data.id))
     else:
-        await call.message.edit_text(f"🗣️Название: {event["name"]}" + "\n\n❌МЕРОПРИЯТИЕ ЗАВЕРШЕНО", parse_mode=ParseMode.HTML, reply_markup=inline.get_owner_remove_inline_keyboard(callback_data.id))
+        await call.message.edit_text(f"🗣️Название: {event["name"]}\n\n❌МЕРОПРИЯТИЕ ЗАВЕРШЕНО", reply_markup=inline.get_owner_remove_inline_keyboard(callback_data.id))
     await call.answer()
 
 
@@ -103,10 +103,12 @@ async def details(call: CallbackQuery, callback_data: EventDetails, request: Req
 async def details(call: CallbackQuery, callback_data: EventDetails, request: Request):
     await request.set_event_value("status", "active", callback_data.id)
     event = await request.get_events(callback_data.id)
-    basic_info = await event_txt.get_basic_info(event[0])
-    photo = event[0]["photo_file_id"]
+    event = event[0]
+    basic_info = await event_txt.get_basic_info(event)
+    photo = event["photo_file_id"]
     if photo != None:
-        await call.message.edit_media(basic_info, parse_mode=ParseMode.HTML, reply_markup=inline.get_owner_more_inline_keyboard(callback_data.id))
+        file = InputMediaPhoto(media=photo, caption=basic_info)
+        await call.message.edit_media(file, reply_markup=inline.get_owner_more_inline_keyboard(callback_data.id))
     else:
-        await call.message.edit_text(basic_info, parse_mode=ParseMode.HTML, reply_markup=inline.get_owner_more_inline_keyboard(callback_data.id))
+        await call.message.edit_text(basic_info, reply_markup=inline.get_owner_more_inline_keyboard(callback_data.id))
     await call.answer()
