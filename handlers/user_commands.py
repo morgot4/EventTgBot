@@ -1,6 +1,6 @@
 from aiogram import Router
 from aiogram.types import Message
-from aiogram.filters import Command, CommandObject, CommandStart
+from aiogram.filters import Command
 from keyboards import reply
 
 router = Router()

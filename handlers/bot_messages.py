@@ -1,20 +1,41 @@
 from aiogram import Router, F
 from aiogram.types import Message
-from aiogram.filters import Command, CommandObject, CommandStart
-from keyboards import reply, inline, builders, fabrics
-from data.subloader import get_json
+from keyboards import reply, inline, builders
+from utils.dbconnect import Request
+from aiogram.fsm.context import FSMContext
+from utils.states import OwnerCode, Form
 
 router = Router()
 
 @router.message()
-async def echo(message: Message):
+async def echo(message: Message, request: Request, state: FSMContext):
     msg = message.text.lower()
-    smiles = await get_json("smiles.json")
-    if msg == 'ссылки':
-        await message.answer("Вот ваши ссылки", reply_markup=inline.links)
-    elif msg == 'спец кнопки':
-        await message.answer("Спец кнопки: ", reply_markup=reply.spec)
-    elif msg == 'калькулятор':
-        await message.answer("Введите выражение: ", reply_markup=builders.calc())
-    elif msg == "смайлики":
-        await message.answer(f"{smiles[0][0]} <b>{smiles[0][1]}</b>", reply_markup=fabrics.paginator())
+    telegram_id = message.from_user.id
+    is_user_owner = await request.is_owner(telegram_id)
+    user_id = await request.get_id(telegram_id)
+    if msg == "🔐стать организатором":
+        if is_user_owner:
+            await message.answer(f"Вы уже организатор", reply_markup=reply.main)
+        else:
+            await message.answer(f"Введите код организатора")
+            await state.set_state(OwnerCode.get_code)
+
+    elif msg == "➕создать":
+        if is_user_owner:
+            await state.set_state(Form.name)
+            await message.answer(
+                "👋 Давай начнем, введите название мероприятия", reply_markup=builders.profile(["⬅️Назад"])
+            )
+        else:
+            await message.answer(f"Только организатор может создать мероприятие!", reply_markup=reply.main)
+    elif msg == "📃мероприятия":
+        await message.answer("👇Все мероприятия", reply_markup=reply.main)
+        await request.get_events_list(message=message)
+
+    elif msg == "👤мои мероприятия":
+        await message.answer("👇Ваши мероприятия",  reply_markup=builders.profile(["⬅️Назад в меню"]))
+        await request.get_events_list(message=message, user_id=user_id)
+
+    elif msg == "⬅️назад в меню":
+        await message.answer("Выберите действие", reply_markup=reply.main)
+

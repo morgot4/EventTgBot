@@ -1,9 +1,8 @@
-# Use postgres/example user/password credentials
 version: '3.9'
 
 services:
   db:
-    image: postgres:17
+    image: postgres:17-alpine
     restart: always
     environment:
       POSTGRES_PASSWORD: postgres

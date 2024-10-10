@@ -7,12 +7,12 @@ from aiogram.types import (
 main = ReplyKeyboardMarkup(
     keyboard=[
         [
-            KeyboardButton(text="Смайлики"),
-            KeyboardButton(text="Ссылки"),
+            KeyboardButton(text="➕Создать"),
+            KeyboardButton(text="📃Мероприятия"),
         ],
         [
-            KeyboardButton(text="Калькулятор"),
-            KeyboardButton(text="Спец кнопки"),
+            KeyboardButton(text="🔐Стать организатором"),
+            KeyboardButton(text="👤Мои мероприятия"),
         ]
     ],
     resize_keyboard=True,
@@ -21,17 +21,5 @@ main = ReplyKeyboardMarkup(
     
 )
 
-spec = ReplyKeyboardMarkup(
-    keyboard=[
-        [
-            KeyboardButton(text="Отправить гео", request_location=True),
-            KeyboardButton(text="Отправить контакт", request_contact=True),
-        ],
-        [
-            KeyboardButton(text="Назад"),
-        ]
-    ],
-    resize_keyboard=True
-)
 
 rmk = ReplyKeyboardRemove()
