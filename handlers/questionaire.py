@@ -265,7 +265,7 @@ async def form_link(message: Message, state: FSMContext):
             await state.set_state(Form.final)
         else:
             await state.set_state(Form.owner_info)
-            await message.answer("👤Добавьте контактную информацию организатора", reply_markup=profile(["⬅️назад"]))
+            await message.answer("👤Добавьте контактную информацию организатора", reply_markup=profile(["📃Использовать шаблон", "➕Добавить шаблон","⬅️назад"]))
     else:
         await message.answer("🚫Ссылка некорректа! Введите еще раз")
 
@@ -273,23 +273,29 @@ async def form_link(message: Message, state: FSMContext):
 async def incorrect_form_link(message: Message, state: FSMContext):
     await message.answer("🚫Некорректный тип данных ссылки")
 
-@router.message(Form.owner_info, F.text)
+
+@router.message(Form.owner_info, F.text.casefold().in_(["📃использовать шаблон"]))
 async def form_owner(message: Message, state: FSMContext):
-    data = await state.get_data()
-    owner_info = message.text
-    if len(owner_info) > 70:
-        await message.answer("🚫Слишком много контактной информации. Попробуйте еще раз.")
-    else:
-        await state.update_data(owner_info=owner_info)
-        if "owner_info" in data.keys() and data["owner_info"] == "CHANGE_AFTER_PUBLISH_OWNER":
-            await print_event_data(state=state, message=message, after_publish=True)
-            await state.set_state(Form.final)
-        elif "owner_info" in data.keys() and data["owner_info"] != "":
-            await print_event_data(state=state, message=message)
-            await state.set_state(Form.final)
-        else:
-            await state.set_state(Form.photo)
-            await message.answer("📷 Добавьте фотографию для вашего мероприятия", reply_markup=profile(["❌Без фотографии", "⬅️назад"]))
+    await state.set_state(Form.use_template)
+    await message.answer("Выберите шаблон")
+
+# @router.message(Form.owner_info, F.text)
+# async def form_owner(message: Message, state: FSMContext):
+#     data = await state.get_data()
+#     owner_info = message.text
+#     if len(owner_info) > 70:
+#         await message.answer("🚫Слишком много контактной информации. Попробуйте еще раз.")
+#     else:
+#         await state.update_data(owner_info=owner_info)
+#         if "owner_info" in data.keys() and data["owner_info"] == "CHANGE_AFTER_PUBLISH_OWNER":
+#             await print_event_data(state=state, message=message, after_publish=True)
+#             await state.set_state(Form.final)
+#         elif "owner_info" in data.keys() and data["owner_info"] != "":
+#             await print_event_data(state=state, message=message)
+#             await state.set_state(Form.final)
+#         else:
+#             await state.set_state(Form.photo)
+#             await message.answer("📷 Добавьте фотографию для вашего мероприятия", reply_markup=profile(["❌Без фотографии", "⬅️назад"]))
 
 @router.message(Form.owner_info)
 async def incorrect_form_owner(message: Message, state: FSMContext):

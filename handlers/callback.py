@@ -12,6 +12,8 @@ from keyboards.builders import profile
 event_txt = EventTextFormater()
 router = Router()
 
+
+
 @router.callback_query(EventDetails.filter(F.action == "more"))
 async def details(call: CallbackQuery, callback_data: EventDetails, request: Request):
     text1 = call.message.caption
@@ -19,12 +21,14 @@ async def details(call: CallbackQuery, callback_data: EventDetails, request: Req
     event = await request.get_events(callback_data.id)
     more_info = await event_txt.get_more_info(event[0])
     photo = event[0]["photo_file_id"]
+    status = event[0]["status"]
     if photo != None:
         new_text = InputMediaPhoto(media=photo, caption=f"{text1}\n\n{more_info}", parse_mode=ParseMode.HTML)
         if callback_data.listing:
             await call.message.edit_media(new_text, reply_markup=inline.get_exit_inline_keyboard(callback_data.id))
         else:
-            await call.message.edit_media(new_text, reply_markup=inline.get_owner_exit_inline_keyboard(callback_data.id))
+            if status == "stopped":
+                await call.message.edit_media(new_text, reply_markup=inline.get_owner_exit_inline_keyboard(callback_data.id))
     else:
         if callback_data.listing:
             await call.message.edit_text(f"{text2}\n\n{more_info}", parse_mode=ParseMode.HTML, reply_markup=inline.get_exit_inline_keyboard(callback_data.id))
@@ -55,8 +59,6 @@ async def details(call: CallbackQuery, callback_data: EventDetails, request: Req
     await request.delete_event(callback_data.id)
     await call.message.delete()
     
-    #await call.answer()
-
 
 @router.callback_query(EventDetails.filter(F.action == "change"))
 async def details(call: CallbackQuery, callback_data: EventDetails, state: FSMContext, request: Request):
@@ -79,5 +81,32 @@ async def details(call: CallbackQuery, callback_data: EventDetails, state: FSMCo
         "⬅️назад", "Изменить название", "Изменить дату", "Изменить время", "Изменить место", "Изменить комментарий", 
         "Изменить ссылку", "Изменить организатора", "Изменить фотографию"
     ]))
-    return
+    await call.answer()
     
+
+@router.callback_query(EventDetails.filter(F.action == "stop"))
+async def details(call: CallbackQuery, callback_data: EventDetails, request: Request):
+    await request.set_event_value("status", "stopped", callback_data.id)
+    event = await request.get_events(callback_data.id)
+    event = event[0]
+    basic_info = await event_txt.get_basic_info(event)
+    photo = event["photo_file_id"]
+
+    if photo != None:
+        await call.message.edit_media(photo, f"🗣️Название: {event["name"]}" + "\n\n❌МЕРОПРИЯТИЕ ЗАВЕРШЕНО", parse_mode=ParseMode.HTML, reply_markup=inline.get_owner_remove_inline_keyboard(callback_data.id))
+    else:
+        await call.message.edit_text(f"🗣️Название: {event["name"]}" + "\n\n❌МЕРОПРИЯТИЕ ЗАВЕРШЕНО", parse_mode=ParseMode.HTML, reply_markup=inline.get_owner_remove_inline_keyboard(callback_data.id))
+    await call.answer()
+
+
+@router.callback_query(EventDetails.filter(F.action == "play"))
+async def details(call: CallbackQuery, callback_data: EventDetails, request: Request):
+    await request.set_event_value("status", "active", callback_data.id)
+    event = await request.get_events(callback_data.id)
+    basic_info = await event_txt.get_basic_info(event[0])
+    photo = event[0]["photo_file_id"]
+    if photo != None:
+        await call.message.edit_media(basic_info, parse_mode=ParseMode.HTML, reply_markup=inline.get_owner_more_inline_keyboard(callback_data.id))
+    else:
+        await call.message.edit_text(basic_info, parse_mode=ParseMode.HTML, reply_markup=inline.get_owner_more_inline_keyboard(callback_data.id))
+    await call.answer()
