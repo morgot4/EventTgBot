@@ -1,14 +1,24 @@
 version: '3.9'
 
 services:
-  db:
+
+  main_bot:
+    build:
+      context: .
+    env_file:
+      - env/main.env
+    restart: on-failure
+    volumes:
+      - ./app:/app
+    depends_on:
+      - postgres_main
+
+  postgres_main:
     image: postgres:17-alpine
-    restart: always
-    environment:
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_USER: postgres
-      POSTGRES_DB: eventdb
-    ports:
-      - 5433:5432
+    env_file:
+      - env/postgres.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
     
 

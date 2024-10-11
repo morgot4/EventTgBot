@@ -1,7 +1,7 @@
 import asyncpg
 import datetime
 from keyboards import inline, reply
-from config_reader import config
+from config.config_reader import settings
 from utils.event_text_formater import EventTextFormater
 
 event_txt = EventTextFormater()
@@ -65,7 +65,6 @@ class Request:
             return []
         i = 0
         while i < len(events):
-            print(user_id, events[i]["owner_id"])
             if events[i]["date"] < datetime.datetime.now():
                 await self.set_event_value("status", "stopped", events[i]['id'])\
                 
@@ -80,7 +79,7 @@ class Request:
 
     async def get_events_list(self, message, user_id="all"):
         events = await self.get_events()
-        admin_id = config.admin_id.get_secret_value()
+        admin_id = settings.ADMIN_ID
         events = await self.filter_events(events, user_id, admin_id)
         if user_id !=  "all":
             if events == []:

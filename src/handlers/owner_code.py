@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 from utils.states import OwnerCode
 from utils.dbconnect import Request
 from keyboards.reply import main
-from config_reader import config
+from config.config_reader import config
 
 router = Router()
 

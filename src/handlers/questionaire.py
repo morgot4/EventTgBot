@@ -66,20 +66,31 @@ async def print_event_data(state, message, after_publish=False):
 
 
 @router.message(StateFilter("*"), F.text.casefold().in_(["⬅️назад"]))
-async def back_state(message: Message, state: FSMContext):
+async def back_state(message: Message, state: FSMContext, request: Request):
     current_state = await state.get_state()
+    if Form.name == "CHANGE_AFTER_PUBLISH_NAME" or Form.date == "CHANGE_AFTER_PUBLISH_DATE" or Form.time == "CHANGE_AFTER_PUBLISH_TIME"\
+    or Form.place == "CHANGE_AFTER_PUBLISH_PLACE" or Form.link == "CHANGE_AFTER_PUBLISH_LINK" or Form.owner_info == "CHANGE_AFTER_PUBLISH_OWNER" or Form.photo == "CHANGE_AFTER_PUBLISH_PHOTO_FILE_ID":
+        await state.set_state(Form.final)
+        return
     if current_state == Form.name:
         await state.clear()
         await message.answer("Создание мероприятия отменено", reply_markup=main)
         return
     elif current_state == Form.change_after_publish:
+        data = await state.get_data()
+        data["owner_telegram_id"] = message.from_user.id
+        await request.set_event(data)
         await state.clear()
-        await message.answer("Изменение мероприятия отменено", reply_markup=main)
+        await message.answer("Изменение мероприятия отменено.", reply_markup=main)
         return
     prev = None
     for st in Form.__all_states__:
         if st.state == current_state:
-            match prev.state[5:]:
+            if prev.state in ['Form:add_template_name', 'Form:add_template_value', 'Form:delete_template']:
+                prev = Form.owner_info
+            state_name = prev.state[5:]
+            print(prev)
+            match state_name:
                 case "name":
                     await state.update_data(name="")
                 case "date":
@@ -98,6 +109,7 @@ async def back_state(message: Message, state: FSMContext):
                     await state.update_data(owner_info="")
 
             await state.set_state(prev)
+
             if prev.state != "Form:final":
                 await message.answer(Form.texts[prev.state][0], reply_markup=Form.texts[prev.state][1])
             else:
@@ -280,7 +292,6 @@ async def use_template_owner(message: Message, state: FSMContext, request: Reque
     templates = await request.get_templates(message.from_user.id)
     buttons = []
     buttons = [template["name"] for template in templates if template]
-    buttons.append("⬅️назад")
     await message.answer("Выберите шаблон", reply_markup=profile(buttons))
 
 @router.message(Form.owner_info, F.text.casefold().in_(["🗑️удалить шаблон"]))
@@ -289,13 +300,12 @@ async def delete_template_owner(message: Message, state: FSMContext, request: Re
     templates = await request.get_templates(message.from_user.id)
     buttons = []
     buttons = [template["name"] for template in templates if template]
-    buttons.append("⬅️назад")
     await message.answer("Выберите шаблон", reply_markup=profile(buttons))
 
 @router.message(Form.owner_info, F.text.casefold().in_(["➕добавить шаблон"]))
 async def add_template(message: Message, state: FSMContext):
     await state.set_state(Form.add_template_name)
-    await message.answer("🏷️Напишите название для нового шаблона")
+    await message.answer("🏷️Напишите название для нового шаблона", reply_markup=rmk)
 
 @router.message(Form.owner_info, F.text)
 async def add_template(message: Message, state: FSMContext, request: Request):
@@ -321,11 +331,11 @@ async def add_template(message: Message, state: FSMContext, request: Request):
 async def add_template_name(message: Message, state: FSMContext, request: Request):
     name = message.text
     if len(name) > 15:
-        await message.answer("Слишком длинное название")
+        await message.answer("Слишком длинное название", reply_markup=rmk)
     else:
         await state.update_data(template_name=name)
         await state.set_state(Form.add_template_value)
-        await message.answer("📃Теперь напишите сам шаблон")
+        await message.answer("📃Теперь напишите сам шаблон", reply_markup=rmk)
 
 @router.message(Form.delete_template, F.text)
 async def delete_template_value(message: Message, state: FSMContext, request: Request):
@@ -348,7 +358,10 @@ async def add_template_value(message: Message, state: FSMContext, request: Reque
         data = await state.get_data()
         await request.add_template(data["template_name"],  data["template_value"],  message.from_user.id)
         await state.set_state(Form.owner_info)
-        await message.answer("👤Добавьте контактную информацию организатора", reply_markup=profile(["📃Использовать шаблон", "➕Добавить шаблон", "🗑️Удалить шаблон", "⬅️назад"]))
+        if "owner_info" in data.keys() and data["owner_info"] == "CHANGE_AFTER_PUBLISH_OWNER":
+            await message.answer("👤Добавьте контактную информацию организатора", reply_markup=profile(["📃Использовать шаблон", "➕Добавить шаблон", "🗑️Удалить шаблон"]))
+        else:
+            await message.answer("👤Добавьте контактную информацию организатора", reply_markup=profile(["📃Использовать шаблон", "➕Добавить шаблон", "🗑️Удалить шаблон", "⬅️назад"]))
 
 
 @router.message(Form.owner_info)
@@ -393,15 +406,23 @@ async def publish(message: Message, state: FSMContext, request: Request):
     await state.clear()
 
 @router.message(Form.final, F.text.casefold().in_(["⚙️изменить"]))
-async def final_change(message: Message, state: FSMContext):
+async def before_publish_final_change(message: Message, state: FSMContext):
     await state.set_state(Form.change_before_publish)
     await message.answer("Выберите", reply_markup=profile([
         "⬅️назад", "Изменить название", "Изменить дату", "Изменить время", "Изменить место", "Изменить комментарий", 
         "Изменить ссылку", "Изменить организатора", "Изменить фотографию"
     ]))
 
+@router.message(Form.final, F.text.casefold().in_(["✍️изменить", "⬅️назад"]))
+async def after_publish_final_change(message: Message, state: FSMContext):
+    await state.set_state(Form.change_after_publish)
+    await message.answer("Выберите", reply_markup=profile([
+        "⬅️назад", "Изменить название", "Изменить дату", "Изменить время", "Изменить место", "Изменить комментарий", 
+        "Изменить ссылку", "Изменить организатора", "Изменить фотографию"
+    ]))
+
 @router.message(Form.final, F.text.casefold().in_(["⚙️добавить изменение"]))
-async def final_change(message: Message, state: FSMContext):
+async def after_change_final_change(message: Message, state: FSMContext):
     await state.set_state(Form.change_after_publish)
     await message.answer("Выберите", reply_markup=profile([
         "⬅️назад", "Изменить название", "Изменить дату", "Изменить время", "Изменить место", "Изменить комментарий", 
@@ -423,22 +444,22 @@ async def all_changes(message, state, after_publish=False):
         if after_publish:
             await state.update_data(name="CHANGE_AFTER_PUBLISH_NAME")
         await state.set_state(Form.name)
-        await message.answer("Введите название еще раз")
+        await message.answer("Введите название еще раз",  reply_markup=rmk)
     elif msg == "изменить дату":
         if after_publish:
             await state.update_data(date="CHANGE_AFTER_PUBLISH_DATE")
         await state.set_state(Form.date)
-        await message.answer("Введите новую дату в формате ДД.ММ.ГГГГ")
+        await message.answer("Введите новую дату в формате ДД.ММ.ГГГГ",  reply_markup=rmk)
     elif msg == "изменить время":
         if after_publish:
             await state.update_data(time="CHANGE_AFTER_PUBLISH_TIME")
         await state.set_state(Form.time)
-        await message.answer("Введите новое время в формате ЧЧ:ММ")
+        await message.answer("Введите новое время в формате ЧЧ:ММ",  reply_markup=rmk)
     elif msg == "изменить место":
         if after_publish:
             await state.update_data(place="CHANGE_AFTER_PUBLISH_PLACE")
         await state.set_state(Form.place)
-        await message.answer("Введите новое место")
+        await message.answer("Введите новое место", reply_markup=rmk)
     elif msg == "изменить комментарий":
         if after_publish:
             await state.update_data(info="CHANGE_AFTER_PUBLISH_INFO")

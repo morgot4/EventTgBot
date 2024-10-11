@@ -30,7 +30,7 @@ def get_owner_more_inline_keyboard(event_id):
         InlineKeyboardButton(text="⏸️Завершить", callback_data=EventDetails(id=event_id, action="stop",  listing=False).pack())
         )
     keyboard_builder.add(
-        InlineKeyboardButton(text="⚙️Изменить", callback_data=EventDetails(id=event_id, action="change",  listing=False).pack())
+        InlineKeyboardButton(text="✍️Изменить", callback_data=EventDetails(id=event_id, action="change",  listing=False).pack())
         )
     keyboard_builder.adjust(1, 2)
     return keyboard_builder.as_markup()
@@ -45,7 +45,7 @@ def get_owner_exit_inline_keyboard(event_id):
         InlineKeyboardButton(text="⏸️Завершить", callback_data=EventDetails(id=event_id, action="stop",  listing=False).pack())
         )
     keyboard_builder.add(
-        InlineKeyboardButton(text="⚙️Изменить", callback_data=EventDetails(id=event_id, action="change",  listing=False).pack())
+        InlineKeyboardButton(text="✍️Изменить", callback_data=EventDetails(id=event_id, action="change",  listing=False).pack())
         )
     keyboard_builder.adjust(1, 2)
     return keyboard_builder.as_markup()

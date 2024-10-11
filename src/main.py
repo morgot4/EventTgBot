@@ -4,7 +4,7 @@ from aiogram.client.bot import DefaultBotProperties
 from aiogram.enums import ParseMode
 # from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from handlers import bot_messages, user_commands, questionaire, owner_code, callback
-from config_reader import config
+from config.config_reader import settings
 from middlewares.dbmiddleware import DbSession
 import asyncpg
 from utils.commands import set_commands
@@ -18,12 +18,12 @@ async def stop_bot(bot: Bot):
 
 
 async def create_pool():
-    return await asyncpg.create_pool(user='postgres', password='postgres', database='eventdb', 
-                                             host='127.0.0.1', port=5433, command_timeout=60)
+    return await asyncpg.create_pool(user=settings.DB_USER, password=settings.DB_PASS, database=settings.DB_NAME, 
+                                             host=settings.DB_HOST, port=settings.DB_PORT, command_timeout=60)
 
 
 async def main():
-    bot = Bot(config.bot_token.get_secret_value(), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+    bot = Bot(settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     pool_connect = await create_pool()
     dp = Dispatcher()
     dp.update.middleware.register(DbSession(pool_connect))
