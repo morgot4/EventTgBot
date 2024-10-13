@@ -1,13 +1,13 @@
 from aiogram import Router, F
 from aiogram.types import CallbackQuery, InputMediaPhoto
 from aiogram.fsm.context import FSMContext
-from utils.callback import EventDetails
-from utils.dbconnect import Request
-from utils.states import Form
-from utils.event_text_formater import EventTextFormater
+from src.utils.callback import EventDetails
+from src.utils.dbconnect import Request
+from src.utils.states import Form
+from src.utils.event_text_formater import EventTextFormater
 from aiogram.enums import ParseMode
-from keyboards import inline
-from keyboards.builders import profile
+from src.keyboards import inline
+from src.keyboards.builders import profile
 
 event_txt = EventTextFormater()
 router = Router()

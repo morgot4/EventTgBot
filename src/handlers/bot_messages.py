@@ -1,9 +1,9 @@
 from aiogram import Router, F
 from aiogram.types import Message
-from keyboards import reply, inline, builders
-from utils.dbconnect import Request
+from src.keyboards import reply, inline, builders
+from src.utils.dbconnect import Request
 from aiogram.fsm.context import FSMContext
-from utils.states import OwnerCode, Form
+from src.utils.states import OwnerCode, Form
 
 router = Router()
 

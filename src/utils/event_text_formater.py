@@ -1,4 +1,3 @@
-import asyncio
 
 class EventTextFormater:
     def __init__(self):

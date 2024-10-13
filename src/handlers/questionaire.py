@@ -3,12 +3,12 @@ from aiogram.types import Message
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 import datetime
-from keyboards.reply import main
-from utils.states import Form
-from utils.dbconnect import Request
-from utils.event_text_formater import EventTextFormater
-from keyboards.builders import profile
-from keyboards.reply import rmk
+from src.keyboards.reply import main
+from src.utils.states import Form
+from src.utils.dbconnect import Request
+from src.utils.event_text_formater import EventTextFormater
+from src.keyboards.builders import profile
+from src.keyboards.reply import rmk
 from urllib.parse import urlparse
 
 router = Router()

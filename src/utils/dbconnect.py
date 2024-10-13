@@ -1,8 +1,8 @@
 import asyncpg
 import datetime
-from keyboards import inline, reply
-from config.config_reader import settings
-from utils.event_text_formater import EventTextFormater
+from src.keyboards import inline, reply
+from src.config.config_reader import settings
+from src.utils.event_text_formater import EventTextFormater
 
 event_txt = EventTextFormater()
 

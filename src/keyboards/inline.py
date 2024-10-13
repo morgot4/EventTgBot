@@ -1,5 +1,5 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from utils.callback import EventDetails
+from src.utils.callback import EventDetails
 from aiogram.types import (
     InlineKeyboardButton,
 )

@@ -2,6 +2,18 @@ version: '3.9'
 
 services:
 
+  postgres_main:
+    image: postgres:17-alpine
+    environment:
+      - POSTGRES_DB=eventdb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: on-failure
+    ports:
+      - "5433:5432"
+
   main_bot:
     build:
       context: .
@@ -9,16 +21,10 @@ services:
       - env/main.env
     restart: on-failure
     volumes:
-      - ./app:/app
+      - .:/app
     depends_on:
       - postgres_main
-
-  postgres_main:
-    image: postgres:17-alpine
-    env_file:
-      - env/postgres.env
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
     
+volumes:
+  postgres_data:
 
