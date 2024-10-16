@@ -5,7 +5,7 @@ services:
   postgres_main:
     image: postgres:17-alpine
     environment:
-      - POSTGRES_DB=eventdb
+      - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     volumes:
@@ -14,16 +14,16 @@ services:
     ports:
       - "5433:5432"
 
-  main_bot:
-    build:
-      context: .
-    env_file:
-      - env/main.env
-    restart: on-failure
-    volumes:
-      - .:/app
-    depends_on:
-      - postgres_main
+  # main_bot:
+  #   build:
+  #     context: .
+  #   env_file:
+  #     - env/.env
+  #   restart: on-failure
+  #   volumes:
+  #     - .:/app
+  #   depends_on:
+  #     - postgres_main
     
 volumes:
   postgres_data:

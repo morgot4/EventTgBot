@@ -1,7 +1,6 @@
 import asyncpg
 import datetime
 from src.keyboards import inline, reply
-from src.config.config_reader import settings
 from src.utils.event_text_formater import EventTextFormater
 
 event_txt = EventTextFormater()
@@ -79,7 +78,8 @@ class Request:
 
     async def get_events_list(self, message, user_id="all"):
         events = await self.get_events()
-        admin_id = settings.ADMIN_ID
+        # admin_id = settings.ADMIN_ID
+        admin_id = 1
         events = await self.filter_events(events, user_id, admin_id)
         if user_id !=  "all":
             if events == []:

@@ -1,0 +1,24 @@
+CREATE TABLE owners(
+                    id int NOT NULL PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+                    telegram_id INT)
+
+CREATE TABLE events(  
+    id int NOT NULL PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name TEXT,
+    date TIMESTAMP,
+    info TEXT,
+    link TEXT,
+    owner_id INT,
+    photo_file_id TEXT,
+    place TEXT,
+    owner_info TEXT,
+    status TEXT
+);
+
+CREATE TABLE templates(  
+    id int NOT NULL PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    owner_id INT,
+    name TEXT,
+    value TEXT
+);
+
