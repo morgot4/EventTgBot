@@ -23,29 +23,12 @@ DB_HOST = os.getenv("DB_HOST")
 DB_PORT = os.getenv("DB_PORT")
 
 
-
 async def start_bot(bot: Bot):
     await set_commands(bot)
     await bot.send_message(ADMIN_ID, text="<strong>Бот запущен!</strong>")
 
 async def stop_bot(bot: Bot):
     await bot.send_message(ADMIN_ID, text="<strong>Бот остановлен!</strong>")
-
-
-# async def sql_init(request):
-#     async with request.acquire() as connect:
-#         await connect.execute("""CREATE TABLE events(
-#                               id serial PRIMARY KEY,
-#                               name TEXT, 
-#                               date DATETIME, 
-#                               info TEXT, 
-#                               link TEXT, 
-#                               owner_id INT, 
-#                               photo_file_id TEXT, 
-#                               place TEXT, 
-#                               owner_info TEXT, 
-#                               status TEXT""")
-
 
 
 async def create_pool():
@@ -57,8 +40,6 @@ async def main():
     bot = Bot(BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     pool_connect = await create_pool()
     dp = Dispatcher()
-    # request = pool_connect
-    # await sql_init(request)
     dp.update.middleware.register(DbSession(pool_connect))
     dp.startup.register(start_bot)
     dp.shutdown.register(stop_bot)

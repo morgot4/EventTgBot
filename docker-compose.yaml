@@ -5,26 +5,35 @@ services:
   postgres_main:
     image: postgres:17-alpine
     environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: on-failure
     ports:
       - "5433:5432"
+    networks:
+      - db
+    expose:
+      - 5432
 
-  # main_bot:
-  #   build:
-  #     context: .
-  #   env_file:
-  #     - env/.env
-  #   restart: on-failure
-  #   volumes:
-  #     - .:/app
-  #   depends_on:
-  #     - postgres_main
-    
+  main_bot:
+    build: .
+    env_file:
+      - .env
+    restart: on-failure
+    volumes:
+      - .:/app
+    depends_on:
+      - postgres_main
+    networks:
+      - db
+  
 volumes:
   postgres_data:
+
+networks:
+  db:
+    driver: bridge
 
