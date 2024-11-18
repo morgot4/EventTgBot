@@ -8,6 +8,7 @@ from src.utils.event_text_formater import EventTextFormater
 from aiogram.enums import ParseMode
 from src.keyboards import inline
 from src.keyboards.builders import profile
+import emoji
 
 event_txt = EventTextFormater()
 router = Router()
@@ -78,7 +79,7 @@ async def details(call: CallbackQuery, callback_data: EventDetails, state: FSMCo
     await state.set_data(data)  
     await state.set_state(Form.change_after_publish)
     await call.message.answer("Выберите изменения", reply_markup=profile([
-        "⬅️назад", "Изменить название", "Изменить дату", "Изменить время", "Изменить место", "Изменить комментарий", 
+        emoji.emojize(":left_arrow:назад"), "Изменить название", "Изменить дату", "Изменить время", "Изменить место", "Изменить комментарий", 
         "Изменить ссылку", "Изменить организатора", "Изменить фотографию"
     ]))
     await call.answer()
@@ -92,10 +93,10 @@ async def details(call: CallbackQuery, callback_data: EventDetails, request: Req
     photo = event["photo_file_id"]
 
     if photo != None:
-        file = InputMediaPhoto(media=photo, caption=f"🗣️Название: {event["name"]}\n\n❌МЕРОПРИЯТИЕ ЗАВЕРШЕНО")
+        file = InputMediaPhoto(media=photo, caption=emoji.emojize(":speaking_head:Название: ") + str(event["name"]) + emoji.emojize("\n\n:cross_mark:МЕРОПРИЯТИЕ ЗАВЕРШЕНО"))
         await call.message.edit_media(file, reply_markup=inline.get_owner_remove_inline_keyboard(callback_data.id))
     else:
-        await call.message.edit_text(f"🗣️Название: {event["name"]}\n\n❌МЕРОПРИЯТИЕ ЗАВЕРШЕНО", reply_markup=inline.get_owner_remove_inline_keyboard(callback_data.id))
+        await call.message.edit_text(emoji.emojize(":speaking_head:Название: ") + str(event["name"]) + emoji.emojize("\n\n:cross_mark:МЕРОПРИЯТИЕ ЗАВЕРШЕНО"), reply_markup=inline.get_owner_remove_inline_keyboard(callback_data.id))
     await call.answer()
 
 

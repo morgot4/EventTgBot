@@ -3,16 +3,17 @@ from aiogram.types import (
     KeyboardButton,
     ReplyKeyboardRemove
 )
+import emoji
 
 main = ReplyKeyboardMarkup(
     keyboard=[
         [
-            KeyboardButton(text="➕Создать"),
-            KeyboardButton(text="📃Мероприятия"),
+            KeyboardButton(text=emoji.emojize(":plus:Создать")),
+            KeyboardButton(text=emoji.emojize(":page_with_curl:Мероприятия")),
         ],
         [
-            KeyboardButton(text="🔐Стать организатором"),
-            KeyboardButton(text="👤Мои мероприятия"),
+            KeyboardButton(text=emoji.emojize(":locked_with_key:Стать организатором")),
+            KeyboardButton(text=emoji.emojize(":bust_in_silhouette:Мои мероприятия")),
         ]
     ],
     resize_keyboard=True,

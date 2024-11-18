@@ -1,5 +1,7 @@
 from aiogram.fsm.state import StatesGroup, State
 from src.keyboards import reply, builders
+import emoji
+
 class Form(StatesGroup):
     name = State()
     date =  State()
@@ -15,17 +17,16 @@ class Form(StatesGroup):
     final = State()
     change_before_publish = State()
     change_after_publish = State()
-
     texts = {
-        "Form:name" : ("👋 Давай начнем, введите название мероприятия", builders.profile(["⬅️назад"])),
-        "Form:date" : ("📅 Отлично, теперь введите дату проведения мероприятия в формате ДД.ММ.ГГГГ", builders.profile(["⬅️назад"])),
-        "Form:time" : ("⏱️Укажите время начала в формате ЧЧ:MM", builders.profile(["⬅️назад"])),
-        "Form:place" : ("🗺️Добавьте место проведения мероприятия", builders.profile(["⬅️назад"])),
-        "Form:info" : ("ℹ️ Теперь добавьте комментарий от организатора", builders.profile(["❌Без комментария", "⬅️назад"])),
-        "Form:link" : ("🔗 Добавьте ссылку на запись", builders.profile(["❌Без ссылки", "⬅️назад"])),
-        "Form:owner_info" : ("👤Добавьте контактную информацию организатора", builders.profile(["📃Использовать шаблон", "➕Добавить шаблон", "🗑️Удалить шаблон", "⬅️назад"])),
-        "Form:photo" : ("📷 Добавьте фотографию для вашего мероприятия", builders.profile(["❌Без фотографии", "⬅️назад"])),
-        "Form:final" : ("Вы создали черновик мероприятия.", builders.profile(["Опубликовать", "Изменить", "⬅️назад"]))
+        "Form:name" : (emoji.emojize(":waving_hand: Давай начнем, введите название мероприятия"), builders.profile([emoji.emojize(":left_arrow:назад")])),
+        "Form:date" : (emoji.emojize(":calendar: Отлично, теперь введите дату проведения мероприятия в формате ДД.ММ.ГГГГ"), builders.profile([emoji.emojize(":left_arrow:назад")])),
+        "Form:time" : (emoji.emojize(":stopwatch:Укажите время начала в формате ЧЧ:MM"), builders.profile([emoji.emojize(":left_arrow:назад")])),
+        "Form:place" : (emoji.emojize(":world_map:Добавьте место проведения мероприятия"), builders.profile([emoji.emojize(":left_arrow:назад")])),
+        "Form:info" : (emoji.emojize(":information: Теперь добавьте комментарий от организатора"), builders.profile([emoji.emojize(":cross_mark:Без комментария"), emoji.emojize(":left_arrow:назад")])),
+        "Form:link" : (emoji.emojize(":link: Добавьте ссылку на запись"), builders.profile([emoji.emojize(":cross_mark:Без ссылки"), emoji.emojize(":left_arrow:назад")])),
+        "Form:owner_info" : (emoji.emojize(":bust_in_silhouette:Добавьте контактную информацию организатора"), builders.profile([emoji.emojize(":page_with_curl:Использовать шаблон"), emoji.emojize(":plus:Добавить шаблон"), emoji.emojize(":wastebasket:Удалить шаблон"), emoji.emojize(":left_arrow:назад")])),
+        "Form:photo" : (emoji.emojize(":camera: Добавьте фотографию для вашего мероприятия"), builders.profile([emoji.emojize(":cross_mark:Без фотографии"), emoji.emojize(":left_arrow:назад")])),
+        "Form:final" : ("Вы создали черновик мероприятия.", builders.profile(["Опубликовать", "Изменить", emoji.emojize(":left_arrow:назад")]))
 
     }
 

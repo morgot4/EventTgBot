@@ -3,7 +3,7 @@ import datetime
 from src.keyboards import inline, reply
 from src.utils.event_text_formater import EventTextFormater
 import emoji
-emoji.emojize
+
 event_txt = EventTextFormater()
 
 
@@ -84,11 +84,11 @@ class Request:
         events = await self.filter_events(events, user_id, admin_id)
         if user_id !=  "all":
             if events == []:
-                await message.answer("У вас нет мероприятий🥱", reply_markup=reply.main)
+                await message.answer(emoji.emojize("У вас нет мероприятий:yawning_face:"), reply_markup=reply.main)
                 return
         else:
             if events == []:
-                await message.answer("Сейчас нет мероприятий😞", reply_markup=reply.main)
+                await message.answer(emoji.emojize("Сейчас нет мероприятий:disappointed_face:"), reply_markup=reply.main)
                 return
 
         for event in events:
@@ -100,7 +100,7 @@ class Request:
             if photo_file_id != None:
                 if user_id != "all":
                     if status == "stopped":
-                        await message.answer_photo(photo_file_id, f"🗣️Название: {event["name"]}" + f"\n\n{emoji.emojize(":CROSS MARK:")}МЕРОПРИЯТИЕ ЗАВЕРШЕНО", reply_markup=inline.get_owner_remove_inline_keyboard(event_id))
+                        await message.answer_photo(photo_file_id, emoji.emojize(":speaking_head:Название: ") + str(event["name"]) + emoji.emojize("\n\n:cross_mark:МЕРОПРИЯТИЕ ЗАВЕРШЕНО"), reply_markup=inline.get_owner_remove_inline_keyboard(event_id))
                     else:
                         await message.answer_photo(photo_file_id, basic_info, reply_markup=inline.get_owner_more_inline_keyboard(event_id))
 
@@ -115,7 +115,7 @@ class Request:
             else:
                 if user_id != "all":
                     if status == "stopped":
-                        await message.answer(f"🗣️Название: {event["name"]}" + f"\n\n{emoji.emojize(":CROSS MARK:")}МЕРОПРИЯТИЕ ЗАВЕРШЕНО", reply_markup=inline.get_owner_remove_inline_keyboard(event_id))
+                        await message.answer(emoji.emojize(":speaking_head:Название: ") + str(event["name"]) + emoji.emojize("\n\n:cross_mark:МЕРОПРИЯТИЕ ЗАВЕРШЕНО"), reply_markup=inline.get_owner_remove_inline_keyboard(event_id))
                     else:
                         await message.answer(basic_info, reply_markup=inline.get_owner_more_inline_keyboard(event_id))
                 elif user_id == "all":

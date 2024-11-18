@@ -10,6 +10,7 @@ from src.utils.event_text_formater import EventTextFormater
 from src.keyboards.builders import profile
 from src.keyboards.reply import rmk
 from urllib.parse import urlparse
+import emoji
 
 router = Router()
 event_txt = EventTextFormater()
@@ -44,9 +45,9 @@ async def check_time(time: str) -> bool:
 async def print_event_data(state, message, after_publish=False):
     data = await state.get_data()
     if after_publish:
-        await message.answer("Вы создали черновик мероприятия.", reply_markup=profile(["✅Применить изменения", "⚙️Добавить изменение"]))
+        await message.answer("Вы создали черновик мероприятия.", reply_markup=profile([emoji.emojize(":check_mark_button:Применить изменения"), emoji.emojize(":gear:Добавить изменение")]))
     else:
-        await message.answer("Вы создали черновик мероприятия.", reply_markup=profile(["🗣️Опубликовать", "⚙️Изменить", "⬅️назад"]))
+        await message.answer("Вы создали черновик мероприятия.", reply_markup=profile([emoji.emojize(":speaking_head:Опубликовать"), emoji.emojize(":gear:Изменить"), emoji.emojize(":left_arrow:назад")]))
     date = data["date"].split(".")
     time = data["time"].split(":")
     date = datetime.datetime(int(date[2]), int(date[1]), int(date[0]), int(time[0]), int(time[1]))
@@ -65,7 +66,7 @@ async def print_event_data(state, message, after_publish=False):
         await message.answer(formatted_text)
 
 
-@router.message(StateFilter("*"), F.text.casefold().in_(["⬅️назад"]))
+@router.message(StateFilter("*"), F.text.casefold().in_([emoji.emojize(":left_arrow:назад")]))
 async def back_state(message: Message, state: FSMContext, request: Request):
     current_state = await state.get_state()
     if Form.name == "CHANGE_AFTER_PUBLISH_NAME" or Form.date == "CHANGE_AFTER_PUBLISH_DATE" or Form.time == "CHANGE_AFTER_PUBLISH_TIME"\
@@ -124,7 +125,7 @@ async def form_name(message: Message, state: FSMContext, request: Request):
     data = await state.get_data()
     name = message.text
     if len(name) > 50:
-        await message.answer("🚫Cлишком длинное названи. Попробуйте еще раз.")
+        await message.answer(emoji.emojize(":prohibited:Cлишком длинное названи. Попробуйте еще раз."))
     else:
         await state.update_data(name=name)
         if "name" in data.keys() and data["name"] == "CHANGE_AFTER_PUBLISH_NAME":
@@ -135,7 +136,7 @@ async def form_name(message: Message, state: FSMContext, request: Request):
             await state.set_state(Form.final)
         else:
             await state.set_state(Form.date)
-            await message.answer("📅 Отлично, теперь введите дату проведения мероприятия в формате ДД.ММ.ГГГГ", reply_markup=profile(["⬅️назад"]))
+            await message.answer(emoji.emojize(":calendar: Отлично, теперь введите дату проведения мероприятия в формате ДД.ММ.ГГГГ"), reply_markup=profile([emoji.emojize(":left_arrow:назад")]))
 
 
 
@@ -153,15 +154,15 @@ async def form_date(message: Message, state: FSMContext, request: Request):
             await state.set_state(Form.final)
         else:
             await state.set_state(Form.time)
-            await message.answer("⏱️Укажите время начала в формате ЧЧ:MM", reply_markup=profile(["⬅️назад"]))
+            await message.answer(emoji.emojize(":stopwatch:Укажите время начала в формате ЧЧ:MM"), reply_markup=profile([emoji.emojize(":left_arrow:назад")]))
         
     else:
-        await message.answer("🚫 Неправильная дата. Введите новую")
+        await message.answer(emoji.emojize(":prohibited: Неправильная дата. Введите новую"))
 
 
 @router.message(Form.date)
 async def incorrect_form_date(message: Message, state: FSMContext):
-    await message.answer("🚫Некорректный тип данных даты")
+    await message.answer(emoji.emojize(":prohibited:Некорректный тип данных даты"))
 
 
 @router.message(Form.time, F.text)
@@ -179,21 +180,21 @@ async def form_time(message: Message, state: FSMContext):
         else:
             await state.set_state(Form.place)
             await message.answer(
-                "🗺️Добавьте место проведения мероприятия", reply_markup=profile(["⬅️назад"])
+                emoji.emojize(":world_map:Добавьте место проведения мероприятия"), reply_markup=profile([emoji.emojize(":left_arrow:назад")])
             )
     else:
-        await message.answer("🚫 Неправильное время. Введите новое")
+        await message.answer(emoji.emojize(":prohibited: Неправильное время. Введите новое"))
 
 @router.message(Form.time)
 async def incorrect_form_time(message: Message, state: FSMContext):
-    await message.answer("🚫Некорректный тип данных для времени")
+    await message.answer(emoji.emojize(":prohibited:Некорректный тип данных для времени"))
 
 @router.message(Form.place, F.text)
 async def form_place(message: Message, state: FSMContext):
     data = await state.get_data()
     place = message.text
     if len(place) > 70:
-        await message.answer("🚫Cлишком много инфорамции. Попробуйте еще раз.")
+        await message.answer(emoji.emojize(":prohibited:Cлишком много инфорамции. Попробуйте еще раз."))
     else:
         await state.update_data(place=message.text)
         if "place" in data.keys() and data["place"] == "CHANGE_AFTER_PUBLISH_PLACE":
@@ -205,14 +206,14 @@ async def form_place(message: Message, state: FSMContext):
         else:
             await state.set_state(Form.info)
             await message.answer(
-                "ℹ️ Теперь добавьте комментарий от организатора", reply_markup=profile(["❌Без комментария", "⬅️назад"])
+                emoji.emojize(":information: Теперь добавьте комментарий от организатора"), reply_markup=profile([emoji.emojize(":cross_mark:Без комментария"), emoji.emojize(":left_arrow:назад")])
             )
 
 @router.message(Form.place)
 async def incorrect_form_place(message: Message, state: FSMContext):
-    await message.answer("🚫Некорректный тип данных места")
+    await message.answer(emoji.emojize(":prohibited:Некорректный тип данных места"))
 
-@router.message(Form.info, F.text.casefold().in_(["❌без комментария"]))
+@router.message(Form.info, F.text.casefold().in_([emoji.emojize(":cross_mark:без комментария")]))
 async def with_out_info(message: Message, state: FSMContext):
     data = await state.get_data()
     await state.update_data(info="-")
@@ -224,16 +225,16 @@ async def with_out_info(message: Message, state: FSMContext):
         await state.set_state(Form.final)
     else:
         await state.set_state(Form.link)
-        await message.answer("🔗 Добавьте ссылку на запись.", reply_markup=profile(["❌Без ссылки", "⬅️назад"]))
+        await message.answer(emoji.emojize(":link: Добавьте ссылку на запись."), reply_markup=profile([emoji.emojize(":cross_mark:Без ссылки"), emoji.emojize(":left_arrow:назад")]))
 
         
 @router.message(Form.info, F.text)
 async def form_info(message: Message, state: FSMContext):
     data = await state.get_data()
     if len(message.text) < 5:
-        await message.answer("😒 Введите что-то поинтереснее", reply_markup=profile(["❌Без комментария", "⬅️назад"]))
+        await message.answer(emoji.emojize(":unamused_face: Введите что-то поинтереснее"), reply_markup=profile([emoji.emojize(":cross_mark:Без комментария"), emoji.emojize(":left_arrow:назад")]))
     elif len(message.text) > 800:
-        await message.answer("🫤 Слишком много текста. Попробуйте еще раз", reply_markup=profile(["❌Без комментария", "⬅️назад"]))
+        await message.answer(emoji.emojize(":face_with_diagonal_mouth: Слишком много текста. Попробуйте еще раз"), reply_markup=profile([emoji.emojize(":cross_mark:Без комментария"), emoji.emojize(":left_arrow:назад")]))
     else:
         await state.update_data(info=message.text)
         if "info" in data.keys() and data["info"] == "CHANGE_AFTER_PUBLISH_INFO":
@@ -244,13 +245,13 @@ async def form_info(message: Message, state: FSMContext):
             await state.set_state(Form.final)
         else:
             await state.set_state(Form.link)
-            await message.answer("🔗 Добавьте ссылку на запись.", reply_markup=profile(["❌Без ссылки", "⬅️назад"]))
+            await message.answer(emoji.emojize(":link: Добавьте ссылку на запись."), reply_markup=profile([emoji.emojize(":cross_mark:Без ссылки"), emoji.emojize(":left_arrow:назад")]))
 
 @router.message(Form.info)
 async def incorrect_form_info(message: Message, state: FSMContext):
-    await message.answer("🚫Некорректный тип данных комментария")
+    await message.answer(emoji.emojize(":prohibited:Некорректный тип данных комментария"))
 
-@router.message(Form.link, F.text.casefold().in_(["❌без ссылки"]))
+@router.message(Form.link, F.text.casefold().in_([emoji.emojize(":cross_mark:без ссылки")]))
 async def with_out_info(message: Message, state: FSMContext):
     data = await state.get_data()
     await state.update_data(link="-")
@@ -262,7 +263,7 @@ async def with_out_info(message: Message, state: FSMContext):
         await state.set_state(Form.final)
     else:
         await state.set_state(Form.owner_info)
-        await message.answer("👤Добавьте контактную информацию организатора", reply_markup=profile(["📃Использовать шаблон", "➕Добавить шаблон", "🗑️удалить шаблон", "⬅️назад"]))
+        await message.answer(emoji.emojize(":bust_in_silhouette:Добавьте контактную информацию организатора"), reply_markup=profile([emoji.emojize(":page_with_curl:Использовать шаблон"), emoji.emojize(":plus:Добавить шаблон"), emoji.emojize(":wastebasket:удалить шаблон"), emoji.emojize(":left_arrow:назад")]))
 
 @router.message(Form.link, F.text)
 async def form_link(message: Message, state: FSMContext):
@@ -277,16 +278,16 @@ async def form_link(message: Message, state: FSMContext):
             await state.set_state(Form.final)
         else:
             await state.set_state(Form.owner_info)
-            await message.answer("👤Добавьте контактную информацию организатора", reply_markup=profile(["📃Использовать шаблон", "➕Добавить шаблон", "🗑️удалить шаблон", "⬅️назад"]))
+            await message.answer(emoji.emojize(":bust_in_silhouette:Добавьте контактную информацию организатора"), reply_markup=profile([emoji.emojize(":page_with_curl:Использовать шаблон"), emoji.emojize(":plus:Добавить шаблон"), emoji.emojize(":wastebasket:удалить шаблон"), emoji.emojize(":left_arrow:назад")]))
     else:
-        await message.answer("🚫Ссылка некорректа! Введите еще раз")
+        await message.answer(emoji.emojize(":prohibited:Ссылка некорректа! Введите еще раз"))
 
 @router.message(Form.link)
 async def incorrect_form_link(message: Message, state: FSMContext):
-    await message.answer("🚫Некорректный тип данных ссылки")
+    await message.answer(emoji.emojize(":prohibited:Некорректный тип данных ссылки"))
 
 
-@router.message(Form.owner_info, F.text.casefold().in_(["📃использовать шаблон"]))
+@router.message(Form.owner_info, F.text.casefold().in_([emoji.emojize(":page_with_curl:использовать шаблон")]))
 async def use_template_owner(message: Message, state: FSMContext, request: Request):
     await state.set_state(Form.owner_info)
     templates = await request.get_templates(message.from_user.id)
@@ -294,7 +295,7 @@ async def use_template_owner(message: Message, state: FSMContext, request: Reque
     buttons = [template["name"] for template in templates if template]
     await message.answer("Выберите шаблон", reply_markup=profile(buttons))
 
-@router.message(Form.owner_info, F.text.casefold().in_(["🗑️удалить шаблон"]))
+@router.message(Form.owner_info, F.text.casefold().in_([emoji.emojize(":wastebasket:удалить шаблон")]))
 async def delete_template_owner(message: Message, state: FSMContext, request: Request):
     await state.set_state(Form.delete_template)
     templates = await request.get_templates(message.from_user.id)
@@ -302,10 +303,10 @@ async def delete_template_owner(message: Message, state: FSMContext, request: Re
     buttons = [template["name"] for template in templates if template]
     await message.answer("Выберите шаблон", reply_markup=profile(buttons))
 
-@router.message(Form.owner_info, F.text.casefold().in_(["➕добавить шаблон"]))
+@router.message(Form.owner_info, F.text.casefold().in_([emoji.emojize(":plus:добавить шаблон")]))
 async def add_template(message: Message, state: FSMContext):
     await state.set_state(Form.add_template_name)
-    await message.answer("🏷️Напишите название для нового шаблона", reply_markup=rmk)
+    await message.answer(emoji.emojize(":label:Напишите название для нового шаблона"), reply_markup=rmk)
 
 @router.message(Form.owner_info, F.text)
 async def add_template(message: Message, state: FSMContext, request: Request):
@@ -314,7 +315,7 @@ async def add_template(message: Message, state: FSMContext, request: Request):
     if owner_info == None:
         owner_info = message.text
     if len(owner_info) > 70:
-        await message.answer("🚫Слишком много контактной информации. Попробуйте еще раз.")
+        await message.answer(emoji.emojize(":prohibited:Слишком много контактной информации. Попробуйте еще раз."))
     else:
         await state.update_data(owner_info=owner_info)
         if "owner_info" in data.keys() and data["owner_info"] == "CHANGE_AFTER_PUBLISH_OWNER":
@@ -325,7 +326,7 @@ async def add_template(message: Message, state: FSMContext, request: Request):
             await state.set_state(Form.final)
         else:
             await state.set_state(Form.photo)
-            await message.answer("📷 Добавьте фотографию для вашего мероприятия", reply_markup=profile(["❌Без фотографии", "⬅️назад"]))
+            await message.answer(emoji.emojize(":camera: Добавьте фотографию для вашего мероприятия"), reply_markup=profile([emoji.emojize(":cross_mark:Без фотографии"), emoji.emojize(":left_arrow:назад")]))
 
 @router.message(Form.add_template_name, F.text)
 async def add_template_name(message: Message, state: FSMContext, request: Request):
@@ -335,7 +336,7 @@ async def add_template_name(message: Message, state: FSMContext, request: Reques
     else:
         await state.update_data(template_name=name)
         await state.set_state(Form.add_template_value)
-        await message.answer("📃Теперь напишите сам шаблон", reply_markup=rmk)
+        await message.answer(emoji.emojize(":page_with_curl:Теперь напишите сам шаблон"), reply_markup=rmk)
 
 @router.message(Form.delete_template, F.text)
 async def delete_template_value(message: Message, state: FSMContext, request: Request):
@@ -345,7 +346,7 @@ async def delete_template_value(message: Message, state: FSMContext, request: Re
         await message.answer("Такого шаблона не существует")
     else:
         await message.answer("Шаблон успешно удалён!")
-        await message.answer("👤Добавьте контактную информацию организатора", reply_markup=profile(["📃Использовать шаблон", "➕Добавить шаблон", "🗑️удалить шаблон", "⬅️назад"]))
+        await message.answer(emoji.emojize(":bust_in_silhouette:Добавьте контактную информацию организатора"), reply_markup=profile([emoji.emojize(":page_with_curl:Использовать шаблон"), emoji.emojize(":plus:Добавить шаблон"), emoji.emojize(":wastebasket:удалить шаблон"), emoji.emojize(":left_arrow:назад")]))
         await state.set_state(Form.owner_info)
 
 @router.message(Form.add_template_value, F.text)
@@ -359,16 +360,16 @@ async def add_template_value(message: Message, state: FSMContext, request: Reque
         await request.add_template(data["template_name"],  data["template_value"],  message.from_user.id)
         await state.set_state(Form.owner_info)
         if "owner_info" in data.keys() and data["owner_info"] == "CHANGE_AFTER_PUBLISH_OWNER":
-            await message.answer("👤Добавьте контактную информацию организатора", reply_markup=profile(["📃Использовать шаблон", "➕Добавить шаблон", "🗑️Удалить шаблон"]))
+            await message.answer(emoji.emojize(":bust_in_silhouette:Добавьте контактную информацию организатора"), reply_markup=profile([emoji.emojize(":page_with_curl:Использовать шаблон"), emoji.emojize(":plus:Добавить шаблон"), emoji.emojize(":wastebasket:Удалить шаблон")]))
         else:
-            await message.answer("👤Добавьте контактную информацию организатора", reply_markup=profile(["📃Использовать шаблон", "➕Добавить шаблон", "🗑️Удалить шаблон", "⬅️назад"]))
+            await message.answer(emoji.emojize(":bust_in_silhouette:Добавьте контактную информацию организатора"), reply_markup=profile([emoji.emojize(":page_with_curl:Использовать шаблон"), emoji.emojize(":plus:Добавить шаблон"), emoji.emojize(":wastebasket:Удалить шаблон"), emoji.emojize(":left_arrow:назад")]))
 
 
 @router.message(Form.owner_info)
 async def incorrect_form_owner(message: Message, state: FSMContext):
-    await message.answer("🚫Некорректный тип данных контактной информации")
+    await message.answer(emoji.emojize(":prohibited:Некорректный тип данных контактной информации"))
 
-@router.message(Form.photo, F.text.casefold().in_(["❌без фотографии"]))
+@router.message(Form.photo, F.text.casefold().in_([emoji.emojize(":cross_mark:без фотографии")]))
 async def with_out_photo(message: Message, state: FSMContext):
     data = await state.get_data()
     await state.update_data(photo_file_id=None)
@@ -397,44 +398,44 @@ async def incorrect_form_photo(message: Message, state: FSMContext):
     
     await message.answer("Это не фотография. (*подсказка* Не отправляйте файлом)")
 
-@router.message(Form.final, F.text.casefold().in_(["🗣️опубликовать"]))
+@router.message(Form.final, F.text.casefold().in_([emoji.emojize(":speaking_head:опубликовать")]))
 async def publish(message: Message, state: FSMContext, request: Request):
     data = await state.get_data()
     data["owner_telegram_id"] = message.from_user.id
     await request.add_event(data)
-    await message.answer("🎉Поздравляю! Мероприятие успешно опубликовано!", reply_markup=main)
+    await message.answer(emoji.emojize(":party_popper:Поздравляю! Мероприятие успешно опубликовано!"), reply_markup=main)
     await state.clear()
 
-@router.message(Form.final, F.text.casefold().in_(["⚙️изменить"]))
+@router.message(Form.final, F.text.casefold().in_([emoji.emojize(":gear:изменить")]))
 async def before_publish_final_change(message: Message, state: FSMContext):
     await state.set_state(Form.change_before_publish)
     await message.answer("Выберите", reply_markup=profile([
-        "⬅️назад", "Изменить название", "Изменить дату", "Изменить время", "Изменить место", "Изменить комментарий", 
+        emoji.emojize(":left_arrow:назад"), "Изменить название", "Изменить дату", "Изменить время", "Изменить место", "Изменить комментарий", 
         "Изменить ссылку", "Изменить организатора", "Изменить фотографию"
     ]))
 
-@router.message(Form.final, F.text.casefold().in_(["✍️изменить", "⬅️назад"]))
+@router.message(Form.final, F.text.casefold().in_([emoji.emojize(":writing_hand:изменить"), emoji.emojize(":left_arrow:назад")]))
 async def after_publish_final_change(message: Message, state: FSMContext):
     await state.set_state(Form.change_after_publish)
     await message.answer("Выберите", reply_markup=profile([
-        "⬅️назад", "Изменить название", "Изменить дату", "Изменить время", "Изменить место", "Изменить комментарий", 
+        emoji.emojize(":left_arrow:назад"), "Изменить название", "Изменить дату", "Изменить время", "Изменить место", "Изменить комментарий", 
         "Изменить ссылку", "Изменить организатора", "Изменить фотографию"
     ]))
 
-@router.message(Form.final, F.text.casefold().in_(["⚙️добавить изменение"]))
+@router.message(Form.final, F.text.casefold().in_([emoji.emojize(":gear:добавить изменение")]))
 async def after_change_final_change(message: Message, state: FSMContext):
     await state.set_state(Form.change_after_publish)
     await message.answer("Выберите", reply_markup=profile([
-        "⬅️назад", "Изменить название", "Изменить дату", "Изменить время", "Изменить место", "Изменить комментарий", 
+        emoji.emojize(":left_arrow:назад"), "Изменить название", "Изменить дату", "Изменить время", "Изменить место", "Изменить комментарий", 
         "Изменить ссылку", "Изменить организатора", "Изменить фотографию"
     ]))
 
-@router.message(Form.final, F.text.casefold().in_(["✅применить изменения"]))
+@router.message(Form.final, F.text.casefold().in_([emoji.emojize(":check_mark_button:применить изменения")]))
 async def final_change_after_publish(message: Message, state: FSMContext, request: Request):
     data = await state.get_data()
     data["owner_telegram_id"] = message.from_user.id
     await request.set_event(data)
-    await message.answer("🎉Мероприятие успешно изменено!", reply_markup=main)
+    await message.answer(emoji.emojize(":party_popper:Мероприятие успешно изменено!"), reply_markup=main)
     await state.clear()
 
 
@@ -464,22 +465,22 @@ async def all_changes(message, state, after_publish=False):
         if after_publish:
             await state.update_data(info="CHANGE_AFTER_PUBLISH_INFO")
         await state.set_state(Form.info)
-        await message.answer("Введите комментарий от организатора заново", reply_markup=profile(["❌Без комментария"]))
+        await message.answer("Введите комментарий от организатора заново", reply_markup=profile([emoji.emojize(":cross_mark:Без комментария")]))
     elif msg == "изменить ссылку":
         if after_publish:
             await state.update_data(link="CHANGE_AFTER_PUBLISH_LINK")
         await state.set_state(Form.link)
-        await message.answer("Добавьте другую ссылку на запись", reply_markup=profile(["❌Без ссылки"]))
+        await message.answer("Добавьте другую ссылку на запись", reply_markup=profile([emoji.emojize(":cross_mark:Без ссылки")]))
     elif msg == "изменить организатора":
         if after_publish:
             await state.update_data(owner_info="CHANGE_AFTER_PUBLISH_OWNER")
         await state.set_state(Form.owner_info)
-        await message.answer("Добавьте новую информацию об организаторе", reply_markup=profile(["📃Использовать шаблон", "➕Добавить шаблон", "🗑️Удалить шаблон"]))
+        await message.answer("Добавьте новую информацию об организаторе", reply_markup=profile([emoji.emojize(":page_with_curl:Использовать шаблон"), emoji.emojize(":plus:Добавить шаблон"), emoji.emojize(":wastebasket:Удалить шаблон")]))
     elif msg == "изменить фотографию":
         if after_publish:
             await state.update_data(photo_file_id="CHANGE_AFTER_PUBLISH_PHOTO_FILE_ID")
         await state.set_state(Form.photo)
-        await message.answer("Пришлите новую фотографию", reply_markup=profile(["❌Без фотографии"]))
+        await message.answer("Пришлите новую фотографию", reply_markup=profile([emoji.emojize(":cross_mark:Без фотографии")]))
 
 
 @router.message(Form.change_before_publish, F.text)
